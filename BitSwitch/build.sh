@@ -24,6 +24,7 @@ case "${1:-build}" in
             $SOURCES
 
         cp Resources/Info.plist "$CONTENTS/"
+        cp Resources/AppIcon.icns "$CONTENTS/Resources/"
 
         echo "Built $APP_BUNDLE"
         echo ""
