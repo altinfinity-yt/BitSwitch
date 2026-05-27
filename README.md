@@ -1,6 +1,6 @@
 # BitSwitch
 
-A macOS menu bar app that automatically switches your audio output device's sample rate and bit depth to match the currently playing file — so your DAC always runs at the native format with zero resampling.
+A macOS menu bar app that automatically switches your audio output device's sample rate and bit depth to match the currently playing file. Zero Resampling.
 
 macOS does not do this on its own. Without BitSwitch, a 96kHz/24-bit FLAC gets resampled to whatever your Audio MIDI Setup is set to (usually 44.1kHz), degrading quality.
 
@@ -34,7 +34,6 @@ Custom players can be added at runtime.
 
 - macOS 13 (Ventura) or later
 - Apple Silicon (arm64)
-- A USB DAC or audio interface that supports multiple sample rates
 
 ## Install
 
