@@ -27,8 +27,13 @@ final class SwitchEngine: ObservableObject {
     func start() {
         loadCustomPlayers()
 
-        targetDevice = AudioDeviceManager.findDevice(nameContaining: "Volt")
-            ?? AudioDeviceManager.defaultOutputDevice()
+        // Restore previously selected device by UID, fall back to system default
+        if let savedUID = loadSavedDeviceUID(),
+           let device = AudioDeviceManager.allOutputDevices().first(where: { $0.uid == savedUID }) {
+            targetDevice = device
+        } else {
+            targetDevice = AudioDeviceManager.defaultOutputDevice()
+        }
 
         if let dev = targetDevice {
             currentDeviceFormat = AudioDeviceManager.currentFormat(deviceID: dev.id)
@@ -49,6 +54,7 @@ final class SwitchEngine: ObservableObject {
     func selectDevice(_ device: AudioDevice) {
         targetDevice = device
         currentDeviceFormat = AudioDeviceManager.currentFormat(deviceID: device.id)
+        saveDeviceUID(device.uid)
     }
 
     func addCustomPlayer(_ name: String) {
@@ -150,5 +156,13 @@ final class SwitchEngine: ObservableObject {
         guard let data = try? Data(contentsOf: configURL),
               let names = try? JSONDecoder().decode([String].self, from: data) else { return }
         customPlayers = Set(names)
+    }
+
+    private func saveDeviceUID(_ uid: String) {
+        UserDefaults.standard.set(uid, forKey: "selectedDeviceUID")
+    }
+
+    private func loadSavedDeviceUID() -> String? {
+        UserDefaults.standard.string(forKey: "selectedDeviceUID")
     }
 }
