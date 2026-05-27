@@ -1,0 +1,19 @@
+# Claude Code
+.claude/
+
+# Build output
+BitSwitch/build/
+*.o
+*.d
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+
+# Test files
+test_*.swift
