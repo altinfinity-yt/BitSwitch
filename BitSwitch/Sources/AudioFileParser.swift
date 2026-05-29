@@ -59,6 +59,8 @@ enum AudioFileParser {
         }
         defer { handle.closeFile() }
 
+        skipID3v2(handle)
+
         let marker = handle.readData(ofLength: 4)
         guard marker.count == 4, String(data: marker, encoding: .ascii) == "fLaC" else {
             throw ParseError.unsupportedFormat
@@ -78,6 +80,24 @@ enum AudioFileParser {
 
         guard sampleRate > 0, bitsPerSample > 0 else { throw ParseError.readError }
         return SourceFormat(sampleRate: sampleRate, bitsPerSample: bitsPerSample, channels: channels)
+    }
+
+    /// Seeks past any ID3v2 tag at the start of the file. Leaves the handle at
+    /// offset 0 if no tag is present.
+    private static func skipID3v2(_ handle: FileHandle) {
+        let header = handle.readData(ofLength: 10)
+        guard header.count == 10,
+              String(data: header[0..<3], encoding: .ascii) == "ID3" else {
+            handle.seek(toFileOffset: 0)
+            return
+        }
+        let tagSize = (Int(header[6]) << 21)
+            | (Int(header[7]) << 14)
+            | (Int(header[8]) << 7)
+            | Int(header[9])
+        // ID3v2.4 may have a footer (10 more bytes); flags byte bit 4 indicates that
+        let hasFooter = (header[5] & 0x10) != 0
+        handle.seek(toFileOffset: UInt64(10 + tagSize + (hasFooter ? 10 : 0)))
     }
 
     // MARK: - WAV
@@ -137,18 +157,7 @@ enum AudioFileParser {
         }
         defer { handle.closeFile() }
 
-        // Skip ID3v2 tag if present
-        let id3Header = handle.readData(ofLength: 10)
-        if id3Header.count >= 10, String(data: id3Header[0..<3], encoding: .ascii) == "ID3" {
-            // Syncsafe integer: 4 bytes, 7 bits each
-            let tagSize = (Int(id3Header[6]) << 21)
-                | (Int(id3Header[7]) << 14)
-                | (Int(id3Header[8]) << 7)
-                | Int(id3Header[9])
-            handle.seek(toFileOffset: UInt64(10 + tagSize))
-        } else {
-            handle.seek(toFileOffset: 0)
-        }
+        skipID3v2(handle)
 
         // Scan for sync word (up to 8KB)
         let scanData = handle.readData(ofLength: 8192)
