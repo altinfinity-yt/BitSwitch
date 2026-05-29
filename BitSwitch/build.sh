@@ -45,8 +45,9 @@ case "${1:-build}" in
         pkill -f "$PRODUCT.app" 2>/dev/null || true
         sleep 1
 
-        # Copy app
-        cp -r "$APP_BUNDLE" /Applications/$PRODUCT.app
+        # Copy app (replace any existing bundle)
+        rm -rf "/Applications/$PRODUCT.app"
+        cp -R "$APP_BUNDLE" "/Applications/$PRODUCT.app"
         echo "Copied to /Applications/$PRODUCT.app"
 
         # Install LaunchAgent
